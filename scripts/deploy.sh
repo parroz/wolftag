@@ -12,6 +12,10 @@
 
 set -euo pipefail
 
+# Compatibility shim: pin the Docker API version so docker compose works against
+# older daemons (e.g. Docker 20.10, max API 1.41). Remove once daemon is upgraded.
+export DOCKER_API_VERSION=1.41
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 FRONTEND_DIR="$PROJECT_ROOT/frontend"
