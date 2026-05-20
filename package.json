@@ -1,0 +1,18 @@
+{
+  "name": "pit2tag",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently \"npm run dev --prefix /Users/arroz/pit2tag/backend\" \"npm run dev --prefix /Users/arroz/pit2tag/frontend\"",
+    "build": "npm run build --prefix /Users/arroz/pit2tag/backend && npm run build --prefix /Users/arroz/pit2tag/frontend",
+    "test": "npm run test --prefix /Users/arroz/pit2tag/backend",
+    "migrate": "npm run migrate --prefix /Users/arroz/pit2tag/backend"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "description": "Local promotional tag printing app",
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}

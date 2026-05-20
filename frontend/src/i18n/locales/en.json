@@ -1,0 +1,64 @@
+{
+  "app": {
+    "loadError": "Could not load batches."
+  },
+  "nav": {
+    "import": "Batch Import",
+    "search": "Search + Print"
+  },
+  "settings": {
+    "title": "Printer",
+    "close": "Close",
+    "loading": "Loading settings…",
+    "loadFailed": "Could not load settings.",
+    "saveFailed": "Failed to save settings.",
+    "save": "Save",
+    "saving": "Saving…",
+    "cancel": "Cancel",
+    "printMode": "Print mode",
+    "modeMock": "Simulation (no printer)",
+    "modeBrother": "Brother printer (raster)",
+    "modeSystem": "System driver",
+    "brotherSection": "Brother connection",
+    "printerIp": "IP address",
+    "printerPort": "Port",
+    "printerModel": "Model",
+    "labelWidth": "Tape width"
+  },
+  "common": {
+    "ref": "REF",
+    "requestFailed": "Request failed.",
+    "selectBatch": "Select a batch"
+  },
+  "search": {
+    "batchLabel": "Batch",
+    "inputPlaceholder": "Scan barcode or type reference…",
+    "printButton": "Print Tag",
+    "printingButton": "Printing…",
+    "selectBatchFirst": "Please select a batch first.",
+    "notFound": "Product not found in selected batch",
+    "searchFailed": "Search failed.",
+    "printFailed": "Print failed."
+  },
+  "import": {
+    "title": "Batch Import",
+    "newBatchLabel": "New batch name",
+    "newBatchPlaceholder": "SUMMER2026",
+    "createButton": "Create batch",
+    "activeBatchLabel": "Active batch",
+    "csvLabel": "CSV file",
+    "importButton": "Import CSV",
+    "importingButton": "Importing…",
+    "selectFirst": "Select a batch and choose a CSV file first.",
+    "createFailed": "Failed to create batch.",
+    "importFailed": "CSV import failed.",
+    "summaryTitle": "Import summary",
+    "summaryImported": "Imported",
+    "summarySkipped": "Skipped",
+    "summaryErrors": "Errors",
+    "summaryRow": "Row {{row}}: {{message}}",
+    "dropZoneLabel": "Drag CSV here",
+    "dropZoneHint": "or click to select a file",
+    "dropZoneClear": "Remove file"
+  }
+}

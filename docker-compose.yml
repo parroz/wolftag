@@ -1,0 +1,29 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      # Bound to loopback only — host nginx proxies to this, nothing else can reach it
+      - "127.0.0.1:${BACKEND_PORT:-3000}:3000"
+    environment:
+      DB_PATH: /data/app.db
+      # These seed the initial defaults — change them via the Settings UI after first run
+      PRINT_MODE:     ${PRINT_MODE:-mock}
+      PRINTER_IP:     ${PRINTER_IP:-192.168.1.122}
+      PRINTER_PORT:   ${PRINTER_PORT:-9100}
+      PRINTER_MODEL:  ${PRINTER_MODEL:-PT-P750W}
+      LABEL_WIDTH_MM: ${LABEL_WIDTH_MM:-12}
+    volumes:
+      - wolftag-data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+volumes:
+  wolftag-data:
+    driver: local

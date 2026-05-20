@@ -1,0 +1,20 @@
+# Dependencies
+node_modules/
+
+# Build output
+backend/dist/
+frontend/dist/
+
+# Database files
+*.db
+backend/data/
+
+# Environment — .env.docker and .env.example are templates and ARE committed
+.env
+backend/.env
+
+# macOS
+.DS_Store
+
+# Logs
+*.log

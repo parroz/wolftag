@@ -1,0 +1,64 @@
+{
+  "app": {
+    "loadError": "Não foi possível carregar os lotes."
+  },
+  "nav": {
+    "import": "Importar Lote",
+    "search": "Pesquisar + Imprimir"
+  },
+  "settings": {
+    "title": "Impressora",
+    "close": "Fechar",
+    "loading": "A carregar configurações…",
+    "loadFailed": "Não foi possível carregar as configurações.",
+    "saveFailed": "Erro ao guardar configurações.",
+    "save": "Guardar",
+    "saving": "A guardar…",
+    "cancel": "Cancelar",
+    "printMode": "Modo de impressão",
+    "modeMock": "Simulação (sem impressora)",
+    "modeBrother": "Impressora Brother (raster)",
+    "modeSystem": "Driver do sistema",
+    "brotherSection": "Ligação Brother",
+    "printerIp": "Endereço IP",
+    "printerPort": "Porta",
+    "printerModel": "Modelo",
+    "labelWidth": "Largura da fita"
+  },
+  "common": {
+    "ref": "REF",
+    "requestFailed": "Pedido falhou.",
+    "selectBatch": "Selecionar lote"
+  },
+  "search": {
+    "batchLabel": "Lote",
+    "inputPlaceholder": "Ler código de barras ou escrever referência…",
+    "printButton": "Imprimir Etiqueta",
+    "printingButton": "A imprimir…",
+    "selectBatchFirst": "Selecione um lote primeiro.",
+    "notFound": "Produto não encontrado no lote selecionado",
+    "searchFailed": "Erro na pesquisa.",
+    "printFailed": "Erro ao imprimir."
+  },
+  "import": {
+    "title": "Importar Lote",
+    "newBatchLabel": "Nome do novo lote",
+    "newBatchPlaceholder": "VERAO2026",
+    "createButton": "Criar lote",
+    "activeBatchLabel": "Lote ativo",
+    "csvLabel": "Ficheiro CSV",
+    "importButton": "Importar CSV",
+    "importingButton": "A importar…",
+    "selectFirst": "Selecione um lote e escolha um ficheiro CSV primeiro.",
+    "createFailed": "Não foi possível criar o lote.",
+    "importFailed": "Erro ao importar CSV.",
+    "summaryTitle": "Resumo da importação",
+    "summaryImported": "Importados",
+    "summarySkipped": "Ignorados",
+    "summaryErrors": "Erros",
+    "summaryRow": "Linha {{row}}: {{message}}",
+    "dropZoneLabel": "Arraste o CSV aqui",
+    "dropZoneHint": "ou clique para selecionar ficheiro",
+    "dropZoneClear": "Remover ficheiro"
+  }
+}
