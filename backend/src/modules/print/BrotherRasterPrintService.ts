@@ -1,6 +1,6 @@
 import net from "node:net";
 import type { PrintResult, PrintService, PrintTagPayload } from "./PrintService.js";
-import { encodeBrotherRaster } from "./brotherRasterEncoder.js";
+import { encodeBrotherRaster, encodeCut } from "./brotherRasterEncoder.js";
 import { renderLabelBitmap } from "./labelRenderer.js";
 
 async function sendBufferToPrinter(host: string, port: number, payload: Buffer): Promise<void> {
@@ -46,6 +46,17 @@ export class BrotherRasterPrintService implements PrintService {
       modeUsed: "brother-raster",
       fallbackTriggered: false,
       message: `Etiqueta enviada para a impressora Brother ${this.model} em ${this.ip}.`,
+    };
+  }
+
+  async cut(): Promise<PrintResult> {
+    const payload = encodeCut(this.labelWidthMm);
+    await sendBufferToPrinter(this.ip, this.port, payload);
+    return {
+      ok: true,
+      modeUsed: "brother-raster",
+      fallbackTriggered: false,
+      message: `Fita cortada na impressora Brother ${this.model}.`,
     };
   }
 }

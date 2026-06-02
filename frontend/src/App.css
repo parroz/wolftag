@@ -209,8 +209,29 @@ button:disabled {
   gap: 1rem;
 }
 
+.top-row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
 .top-row label {
   max-width: 340px;
+  flex: 1;
+}
+
+.cut-btn {
+  flex: 0 0 auto;
+  background: var(--surface-2);
+  color: var(--text);
+  border: 1px solid var(--border-bright);
+  white-space: nowrap;
+}
+
+.cut-btn:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--accent);
 }
 
 .search-form {

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { printTag, searchProducts } from "../api";
+import { cutTape, printTag, searchProducts } from "../api";
 import type { Batch, Product } from "../types";
 
 interface SearchPageProps {
@@ -92,6 +92,24 @@ export function SearchPage(props: SearchPageProps) {
     [results, selectedProductId],
   );
 
+  async function handleCut() {
+    setBusy(true);
+    setMessage(null);
+    setWarning(null);
+    try {
+      const response = await cutTape();
+      if (response.warning) {
+        setWarning(response.warning);
+      }
+      setMessage(response.message);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : t("search.cutFailed"));
+    } finally {
+      setBusy(false);
+      inputRef.current?.focus();
+    }
+  }
+
   async function handlePrint() {
     if (!selectedProduct) {
       return;
@@ -135,6 +153,9 @@ export function SearchPage(props: SearchPageProps) {
             ))}
           </select>
         </label>
+        <button className="cut-btn" type="button" onClick={handleCut} disabled={busy}>
+          {t("search.cutButton")}
+        </button>
       </div>
 
       <div className="search-form">

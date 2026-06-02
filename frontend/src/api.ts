@@ -55,6 +55,11 @@ export async function printTag(productId: number): Promise<PrintResponse> {
   return handleResponse<PrintResponse>(response);
 }
 
+export async function cutTape(): Promise<PrintResponse> {
+  const response = await fetch(`${API_BASE}/api/cut`, { method: "POST" });
+  return handleResponse<PrintResponse>(response);
+}
+
 export async function fetchSettings(): Promise<PrinterSettings> {
   const response = await fetch(`${API_BASE}/api/settings`);
   return handleResponse<PrinterSettings>(response);
