@@ -33,6 +33,7 @@ export function SearchPage(props: SearchPageProps) {
   const [message, setMessage] = useState<string | null>(null);
   const [warning, setWarning] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [quantity, setQuantity] = useState(1);
   const searchRequestIdRef = useRef(0);
 
   useEffect(() => {
@@ -100,7 +101,7 @@ export function SearchPage(props: SearchPageProps) {
     setMessage(null);
     setWarning(null);
     try {
-      const response = await printTag(selectedProduct.id);
+      const response = await printTag(selectedProduct.id, quantity);
       if (response.warning) {
         setWarning(response.warning);
       }
@@ -108,6 +109,7 @@ export function SearchPage(props: SearchPageProps) {
       setQuery("");
       setResults([]);
       setSelectedProductId(null);
+      setQuantity(1);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : t("search.printFailed"));
     } finally {
@@ -182,9 +184,26 @@ export function SearchPage(props: SearchPageProps) {
             </p>
           )}
           <p className="ean-line">{t("common.ean")}: {selectedProduct.ean}</p>
-          <button className="print-btn" type="button" onClick={handlePrint} disabled={busy}>
-            {busy ? t("search.printingButton") : t("search.printButton")}
-          </button>
+          <div className="print-row">
+            <label className="qty-field">
+              {t("search.quantity")}
+              <input
+                className="qty-input"
+                type="number"
+                min={1}
+                max={99}
+                value={quantity}
+                onChange={(event) => {
+                  const n = Number.parseInt(event.target.value, 10);
+                  setQuantity(Number.isFinite(n) ? Math.min(99, Math.max(1, n)) : 1);
+                }}
+                onFocus={(event) => event.target.select()}
+              />
+            </label>
+            <button className="print-btn" type="button" onClick={handlePrint} disabled={busy}>
+              {busy ? t("search.printingButton") : t("search.printButton")}
+            </button>
+          </div>
         </section>
       )}
 

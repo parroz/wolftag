@@ -2,6 +2,7 @@ import type { Product } from "../products/productRepository.js";
 
 export interface PrintTagPayload {
   product: Product;
+  copies?: number;
 }
 
 export interface PrintResult {

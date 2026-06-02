@@ -35,7 +35,7 @@ function getTapeProfile(mediaWidthMm: number): TapeProfile {
   };
 }
 
-function encodePrintInformation(profile: TapeProfile, rasterLines: number): Buffer {
+function encodePrintInformation(profile: TapeProfile, rasterLines: number, isFirstPage = true): Buffer {
   const validFlag = 0x0e; // kind + width + length
   const n5 = rasterLines & 0xff;
   const n6 = (rasterLines >> 8) & 0xff;
@@ -54,7 +54,7 @@ function encodePrintInformation(profile: TapeProfile, rasterLines: number): Buff
     n6,
     n7,
     n8,
-    0x00, // first page
+    isFirstPage ? 0x00 : 0x01, // starting page (0) vs subsequent page (1)
     0x00,
   ]);
 }
@@ -88,35 +88,43 @@ function isZeroLine(data: Buffer): boolean {
   return true;
 }
 
-export function encodeBrotherRaster(bitmap: LabelBitmap, mediaWidthMm: number): Buffer {
-  const chunks: Buffer[] = [];
+export function encodeBrotherRaster(bitmap: LabelBitmap, mediaWidthMm: number, copies = 1): Buffer {
   const profile = getTapeProfile(mediaWidthMm);
+  const pages = Math.max(1, Math.min(99, Math.floor(copies)));
+  const chunks: Buffer[] = [];
 
-  chunks.push(Buffer.alloc(200, 0x00)); // Invalidate preamble
-  chunks.push(Buffer.from([0x1b, 0x40])); // Initialize
-  chunks.push(Buffer.from([0x1b, 0x69, 0x61, 0x01])); // Enter raster mode
-  chunks.push(encodePrintInformation(profile, bitmap.width));
-  // Mirror the P-touch driver's "Chain Printing on, Half Cut on, Auto Cut off":
-  // tags print chained with a half-cut between them (tape nicked, backing
-  // intact) so they're easy to separate; the operator does the full cut to
-  // detach the strip with the printer's physical button. Terminate with 1A
-  // (last-page print+feed) — NOT 0C, which signals "more pages" and makes the
-  // printer feed continuously.
-  chunks.push(Buffer.from([0x1b, 0x69, 0x4d, 0x00])); // Various mode: auto-cut OFF, no mirror
-  chunks.push(Buffer.from([0x1b, 0x69, 0x4b, 0x04])); // Advanced mode: chain printing ON + half cut ON
-  chunks.push(Buffer.from([0x1b, 0x69, 0x64, 0x0e, 0x00])); // 14-dot margin between chained tags
-  chunks.push(Buffer.from([0x4d, 0x00])); // No compression
+  chunks.push(Buffer.alloc(200, 0x00)); // Invalidate preamble (once)
+  chunks.push(Buffer.from([0x1b, 0x40])); // Initialize (once)
+  chunks.push(Buffer.from([0x1b, 0x69, 0x61, 0x01])); // Enter raster mode (once)
 
+  // The raster body is identical for every copy — build it once.
+  const raster: Buffer[] = [];
   for (let x = 0; x < bitmap.width; x += 1) {
     const line = buildPrinterLineData(bitmap, x, profile);
     if (isZeroLine(line)) {
-      chunks.push(Buffer.from([0x5a])); // Zero raster graphics
+      raster.push(Buffer.from([0x5a])); // Zero raster graphics
     } else {
-      chunks.push(Buffer.from([0x47, profile.bytesPerRasterLine, 0x00]));
-      chunks.push(line);
+      raster.push(Buffer.from([0x47, profile.bytesPerRasterLine, 0x00]));
+      raster.push(line);
     }
   }
 
-  chunks.push(Buffer.from([0x1a])); // Print with feeding (last page); chain-on suppresses the cut
+  // Chain Printing + Auto Cut (mirrors the P-touch driver): all copies are sent
+  // as one batch job, each auto-cut, chained to minimise waste between them.
+  // Non-last pages end with 0C ("more pages"); only the last ends with 1A. 0C is
+  // safe here because more page data always follows it within the same job.
+  for (let page = 0; page < pages; page += 1) {
+    chunks.push(encodePrintInformation(profile, bitmap.width, page === 0));
+    chunks.push(Buffer.from([0x1b, 0x69, 0x4d, 0x40])); // Various mode: auto-cut ON, no mirror
+    chunks.push(Buffer.from([0x1b, 0x69, 0x41, 0x01])); // Cut each 1 label
+    chunks.push(Buffer.from([0x1b, 0x69, 0x4b, 0x00])); // Advanced mode: chain printing ON
+    chunks.push(Buffer.from([0x1b, 0x69, 0x64, 0x0e, 0x00])); // 14-dot margin
+    chunks.push(Buffer.from([0x4d, 0x00])); // No compression
+    for (const chunk of raster) {
+      chunks.push(chunk);
+    }
+    chunks.push(Buffer.from([page === pages - 1 ? 0x1a : 0x0c]));
+  }
+
   return Buffer.concat(chunks);
 }

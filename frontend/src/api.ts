@@ -46,11 +46,11 @@ export async function searchProducts(batchId: number, q: string): Promise<Produc
   return payload.items;
 }
 
-export async function printTag(productId: number): Promise<PrintResponse> {
+export async function printTag(productId: number, quantity = 1): Promise<PrintResponse> {
   const response = await fetch(`${API_BASE}/api/print-tag`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ product_id: productId }),
+    body: JSON.stringify({ product_id: productId, quantity }),
   });
   return handleResponse<PrintResponse>(response);
 }

@@ -328,12 +328,30 @@ button:disabled {
   font-size: 0.85em;
 }
 
+.print-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.75rem;
+  margin-top: 0.25rem;
+}
+
+.qty-field {
+  flex: 0 0 auto;
+  width: 5.5rem;
+}
+
+.qty-input {
+  font-family: var(--font-display) !important;
+  font-size: 1.5rem !important;
+  text-align: center;
+  padding: 0.75rem 0.4rem !important;
+}
+
 .print-btn {
-  width: 100%;
+  flex: 1;
   font-size: 1.5rem !important;
   padding: 1rem !important;
   letter-spacing: 0.12em !important;
-  margin-top: 0.25rem;
 }
 
 /* ── Import page ─────────────────────────────── */

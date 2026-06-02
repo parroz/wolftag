@@ -103,7 +103,10 @@ app.get("/api/products/:id", (req, res) => {
 // ── Print ─────────────────────────────────────────────────────────────────────
 
 app.post("/api/print-tag", async (req, res) => {
-  const schema = z.object({ product_id: z.coerce.number().int().positive() });
+  const schema = z.object({
+    product_id: z.coerce.number().int().positive(),
+    quantity: z.coerce.number().int().min(1).max(99).default(1),
+  });
   const parsed = schema.safeParse(req.body);
   if (!parsed.success) {
     return res.status(400).json({ error: "Dados inválidos." });
@@ -115,7 +118,7 @@ app.post("/api/print-tag", async (req, res) => {
 
   const settings = getSettings();
   const printService = createPrintService(settings);
-  const result = await printService.printTag({ product });
+  const result = await printService.printTag({ product, copies: parsed.data.quantity });
   return res.status(result.ok ? 200 : 503).json(result);
 });
 

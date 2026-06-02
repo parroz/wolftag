@@ -38,14 +38,18 @@ export class BrotherRasterPrintService implements PrintService {
   ) {}
 
   async printTag(payload: PrintTagPayload): Promise<PrintResult> {
+    const copies = payload.copies ?? 1;
     const bitmap = await renderLabelBitmap(payload.product, this.labelWidthMm);
-    const rasterPayload = encodeBrotherRaster(bitmap, this.labelWidthMm);
+    const rasterPayload = encodeBrotherRaster(bitmap, this.labelWidthMm, copies);
     await sendBufferToPrinter(this.ip, this.port, rasterPayload);
     return {
       ok: true,
       modeUsed: "brother-raster",
       fallbackTriggered: false,
-      message: `Etiqueta enviada para a impressora Brother ${this.model} em ${this.ip}.`,
+      message:
+        copies > 1
+          ? `${copies} etiquetas enviadas para a impressora Brother ${this.model}.`
+          : `Etiqueta enviada para a impressora Brother ${this.model} em ${this.ip}.`,
     };
   }
 }
