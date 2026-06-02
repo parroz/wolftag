@@ -1,5 +1,5 @@
 import { Jimp, loadFont, measureText } from "jimp";
-import { SANS_14_BLACK, SANS_16_BLACK, SANS_32_BLACK } from "jimp/fonts";
+import { SANS_32_BLACK } from "jimp/fonts";
 import type { Product } from "../products/productRepository.js";
 
 export interface LabelBitmap {
@@ -8,62 +8,78 @@ export interface LabelBitmap {
   rgba: Buffer;
 }
 
+const BLACK = 0x000000ff;
+
 function formatPercent(value: number): string {
   return `-${Math.round(value)}%`;
 }
 
-function formatEuro(value: number): string {
-  return new Intl.NumberFormat("pt-PT", {
-    style: "currency",
-    currency: "EUR",
-    minimumFractionDigits: 2,
-  }).format(value);
+function formatPriceNumber(value: number): string {
+  return value.toFixed(2); // e.g. "35.94" — the € glyph is drawn separately (font atlas lacks it)
+}
+
+function fillRect(image: InstanceType<typeof Jimp>, x: number, y: number, w: number, h: number): void {
+  const x0 = Math.max(0, Math.round(x));
+  const y0 = Math.max(0, Math.round(y));
+  const x1 = Math.min(image.bitmap.width, Math.round(x + w));
+  const y1 = Math.min(image.bitmap.height, Math.round(y + h));
+  for (let yy = y0; yy < y1; yy += 1) {
+    for (let xx = x0; xx < x1; xx += 1) {
+      image.setPixelColor(BLACK, xx, yy);
+    }
+  }
+}
+
+// The bundled jimp fonts have no usable euro glyph, so we render it from the
+// font's "C" and overlay the two horizontal euro bars on top of it. This keeps
+// the size and baseline perfectly matched to the price digits.
+function drawEuro(
+  image: InstanceType<typeof Jimp>,
+  font: Awaited<ReturnType<typeof loadFont>>,
+  x: number,
+  y: number,
+): void {
+  const c = font.chars["C"];
+  image.print({ font, x, y, text: "C" });
+  const cTop = y + c.yoffset;
+  const cLeft = x + c.xoffset;
+  const barThickness = Math.max(2, Math.round(c.height * 0.13));
+  const barWidth = Math.round(c.width * 0.82);
+  const barX = cLeft - Math.round(c.width * 0.1);
+  fillRect(image, barX, cTop + Math.round(c.height * 0.3), barWidth, barThickness);
+  fillRect(image, barX, cTop + Math.round(c.height * 0.55), barWidth, barThickness);
 }
 
 export async function renderLabelBitmap(product: Product, labelWidthMm: number): Promise<LabelBitmap> {
-  const font32 = await loadFont(SANS_32_BLACK);
-  const font16 = await loadFont(SANS_16_BLACK);
-  const font14 = await loadFont(SANS_14_BLACK);
-  const discountText = formatPercent(product.baixa_percent);
-  const priceText = formatEuro(product.pvp_promo);
-  const refText = `REF: ${product.referencia}`;
-  const descText = product.descricao.trim().slice(0, 22);
+  const font = await loadFont(SANS_32_BLACK);
 
-  let width = 620;
+  const discountText = formatPercent(product.baixa_percent);
+  const priceNumber = formatPriceNumber(product.pvp_promo);
+
+  const euroGap = 3;
+  const euroWidth = font.chars["C"].xadvance;
+  const discountWidth = measureText(font, discountText);
+  const priceNumberWidth = measureText(font, priceNumber);
+  const priceWidth = priceNumberWidth + euroGap + euroWidth;
+
+  const padding = 16;
+  const gap = 30; // space between the discount and the price
   const height = labelWidthMm === 12 ? 70 : 128;
-  if (labelWidthMm === 12) {
-    const padding = 10;
-    const topGap = 14;
-    const bottomGap = descText ? 10 : 0;
-    const topWidth =
-      padding +
-      measureText(font32, discountText) +
-      topGap +
-      measureText(font32, priceText) +
-      padding;
-    const bottomWidth =
-      padding +
-      measureText(font16, refText) +
-      bottomGap +
-      (descText ? measureText(font14, descText) : 0) +
-      padding;
-    width = Math.min(420, Math.max(260, topWidth, bottomWidth));
-  }
+  const width = padding + discountWidth + gap + priceWidth + padding;
 
   const image = new Jimp({ width, height, color: 0xffffffff });
-  const padding = 10;
-  const priceX = Math.max(padding, width - padding - measureText(font32, priceText));
 
-  image.print({ font: font32, x: padding, y: 0, text: discountText });
-  image.print({ font: font32, x: priceX, y: 0, text: priceText });
-  image.print({ font: font16, x: padding, y: 36, text: refText });
+  // Vertically centre using the digit glyph metrics.
+  const digit = font.chars["5"];
+  const y = Math.round((height - digit.height) / 2) - digit.yoffset;
 
-  if (descText) {
-    const descWidth = measureText(font14, descText);
-    const refEndX = padding + measureText(font16, refText);
-    const descX = Math.max(refEndX + 10, width - padding - descWidth);
-    image.print({ font: font14, x: descX, y: 42, text: descText });
-  }
+  // Discount on the left.
+  image.print({ font, x: padding, y, text: discountText });
+
+  // Price (number + drawn euro) right-aligned.
+  const priceX = width - padding - priceWidth;
+  image.print({ font, x: priceX, y, text: priceNumber });
+  drawEuro(image, font, priceX + priceNumberWidth + euroGap, y);
 
   return { width, height, rgba: Buffer.from(image.bitmap.data) };
 }
