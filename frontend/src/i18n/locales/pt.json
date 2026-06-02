@@ -27,12 +27,15 @@
   },
   "common": {
     "ref": "REF",
+    "ean": "EAN",
+    "cor": "Cor",
+    "tam": "Tam",
     "requestFailed": "Pedido falhou.",
     "selectBatch": "Selecionar lote"
   },
   "search": {
     "batchLabel": "Lote",
-    "inputPlaceholder": "Ler código de barras ou escrever referência…",
+    "inputPlaceholder": "Ler código de barras (EAN) ou escrever referência…",
     "printButton": "Imprimir Etiqueta",
     "printingButton": "A imprimir…",
     "selectBatchFirst": "Selecione um lote primeiro.",

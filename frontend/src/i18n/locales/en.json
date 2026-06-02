@@ -27,12 +27,15 @@
   },
   "common": {
     "ref": "REF",
+    "ean": "EAN",
+    "cor": "Color",
+    "tam": "Size",
     "requestFailed": "Request failed.",
     "selectBatch": "Select a batch"
   },
   "search": {
     "batchLabel": "Batch",
-    "inputPlaceholder": "Scan barcode or type reference…",
+    "inputPlaceholder": "Scan barcode (EAN) or type reference…",
     "printButton": "Print Tag",
     "printingButton": "Printing…",
     "selectBatchFirst": "Please select a batch first.",

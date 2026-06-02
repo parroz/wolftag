@@ -14,13 +14,13 @@ beforeEach(() => {
 });
 
 describe("csv import", () => {
-  it("imports comma decimal values and reports skipped rows", () => {
+  it("imports decimal values and reports skipped rows", () => {
     const batch = createBatchIfMissing("TEST-A");
     const csv = [
-      "Referencia;Descricao;PVP Inicial;Baixa %;PVP Promo",
-      "ABC123;Produto A;29,99;40,0;19,99",
-      "   DEF999   ; Produto B ;59.90;10,5;53,91",
-      "BAD;Missing Price;;;",
+      "referencia;Designacao;Cor;Tam;EAN;PVP;Perc;PPromo",
+      "ABC123;Produto A;1;M;1000007538963;29,99;40;19,99",
+      "   ABC123   ; Produto A ;1; L ;1000007538970;59.90;10,5;53,91",
+      "BAD;Missing EAN;1;M;;19.99;5;18.99",
     ].join("\n");
 
     const summary = importCsvToBatch(batch.id, csv);
@@ -28,21 +28,52 @@ describe("csv import", () => {
     expect(summary.skipped).toBe(1);
     expect(summary.errors.length).toBe(1);
   });
+
+  it("keeps each EAN variant of a shared reference as a distinct row", () => {
+    const batch = createBatchIfMissing("TEST-VARIANTS");
+    const csv = [
+      "referencia,Designacao,Cor,Tam,EAN,PVP,Perc,PPromo",
+      "400532,SAIA ROBERTS,1,M,1000007538956,59.9,40,35.94",
+      "400532,SAIA ROBERTS,1,L,1000007538963,59.9,40,35.94",
+      "400532,SAIA ROBERTS,41,L,1000007539007,59.9,40,35.94",
+    ].join("\n");
+
+    const summary = importCsvToBatch(batch.id, csv);
+    expect(summary.imported).toBe(3);
+
+    const results = searchProducts(batch.id, "400532");
+    expect(results.length).toBe(3);
+    expect(new Set(results.map((r) => r.ean)).size).toBe(3);
+  });
 });
 
 describe("search ranking", () => {
   it("prioritizes exact referencia over partial matches", () => {
     const batch = createBatchIfMissing("TEST-B");
     const csv = [
-      "Referencia,Descricao,PVP Inicial,Baixa %,PVP Promo",
-      "ABC123,Produto Exato,39.99,20,31.99",
-      "ABC1234,Produto Parcial,49.99,10,44.99",
-      "ZX9,Descricao com ABC123,19.99,5,18.99",
+      "referencia,Designacao,Cor,Tam,EAN,PVP,Perc,PPromo",
+      "ABC123,Produto Exato,1,M,1000000000001,39.99,20,31.99",
+      "ABC1234,Produto Parcial,1,M,1000000000002,49.99,10,44.99",
+      "ZX9,Descricao com ABC123,1,M,1000000000003,19.99,5,18.99",
     ].join("\n");
     importCsvToBatch(batch.id, csv);
 
     const results = searchProducts(batch.id, "ABC123");
     expect(results[0]?.referencia).toBe("ABC123");
+  });
+
+  it("finds a product by exact EAN scan", () => {
+    const batch = createBatchIfMissing("TEST-EAN");
+    const csv = [
+      "referencia,Designacao,Cor,Tam,EAN,PVP,Perc,PPromo",
+      "400532,SAIA ROBERTS,1,M,1000007538956,59.9,40,35.94",
+      "400532,SAIA ROBERTS,1,L,1000007538963,59.9,40,35.94",
+    ].join("\n");
+    importCsvToBatch(batch.id, csv);
+
+    const results = searchProducts(batch.id, "1000007538963");
+    expect(results.length).toBe(1);
+    expect(results[0]?.tam).toBe("L");
   });
 });
 
@@ -60,6 +91,9 @@ describe("print fallback", () => {
         batch_id: 1,
         referencia: "ABC",
         descricao: "Demo",
+        cor: "1",
+        tam: "M",
+        ean: "1000000000001",
         pvp_inicial: 10,
         baixa_percent: 10,
         pvp_promo: 9,
@@ -90,6 +124,9 @@ describe("print fallback", () => {
         batch_id: 1,
         referencia: "ABC",
         descricao: "Demo",
+        cor: "1",
+        tam: "M",
+        ean: "1000000000001",
         pvp_inicial: 10,
         baixa_percent: 10,
         pvp_promo: 9,

@@ -302,8 +302,30 @@ button:disabled {
   font-size: 1.15rem;
   font-weight: 600;
   color: var(--text);
-  margin: 0 0 1rem;
+  margin: 0 0 0.35rem;
   letter-spacing: 0.01em;
+}
+
+.variant-line {
+  font-family: var(--font-ui);
+  font-size: 0.95rem;
+  color: var(--text);
+  margin: 0 0 0.2rem;
+  letter-spacing: 0.02em;
+}
+
+.ean-line {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin: 0 0 1rem;
+}
+
+.choice-variant {
+  color: var(--text-muted);
+  font-size: 0.85em;
 }
 
 .print-btn {

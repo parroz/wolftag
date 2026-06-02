@@ -17,6 +17,12 @@ function formatEuro(value: number): string {
   }).format(value);
 }
 
+function variantLabel(product: Product, corLabel: string, tamLabel: string): string {
+  return [product.cor && `${corLabel} ${product.cor}`, product.tam && `${tamLabel} ${product.tam}`]
+    .filter(Boolean)
+    .join(" · ");
+}
+
 export function SearchPage(props: SearchPageProps) {
   const { batches, selectedBatchId, onSelectedBatch } = props;
   const { t } = useTranslation();
@@ -152,6 +158,12 @@ export function SearchPage(props: SearchPageProps) {
                 onClick={() => setSelectedProductId(item.id)}
               >
                 {item.referencia} — {item.descricao}
+                {variantLabel(item, t("common.cor"), t("common.tam")) && (
+                  <span className="choice-variant">
+                    {" "}
+                    {variantLabel(item, t("common.cor"), t("common.tam"))}
+                  </span>
+                )}
               </button>
             </li>
           ))}
@@ -164,6 +176,12 @@ export function SearchPage(props: SearchPageProps) {
           <p className="discount">-{Math.round(selectedProduct.baixa_percent)}%</p>
           <p className="promo">{formatEuro(selectedProduct.pvp_promo)}</p>
           <p className="description">{selectedProduct.descricao}</p>
+          {variantLabel(selectedProduct, t("common.cor"), t("common.tam")) && (
+            <p className="variant-line">
+              {variantLabel(selectedProduct, t("common.cor"), t("common.tam"))}
+            </p>
+          )}
+          <p className="ean-line">{t("common.ean")}: {selectedProduct.ean}</p>
           <button className="print-btn" type="button" onClick={handlePrint} disabled={busy}>
             {busy ? t("search.printingButton") : t("search.printButton")}
           </button>

@@ -9,6 +9,9 @@ export interface Product {
   batch_id: number;
   referencia: string;
   descricao: string;
+  cor: string;
+  tam: string;
+  ean: string;
   pvp_inicial: number;
   baixa_percent: number;
   pvp_promo: number;

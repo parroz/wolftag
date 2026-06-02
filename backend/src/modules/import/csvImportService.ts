@@ -1,18 +1,23 @@
 import { parse } from "csv-parse/sync";
 import { type ImportProductRow, upsertProduct } from "../products/productRepository.js";
 
+// Maps normalised headers (diacritics stripped, lowercased) to canonical fields.
+// Source columns: Referencia, Designacao, Cor, Tam, EAN, PVP, Perc, PPromo.
 const HEADER_ALIASES: Record<string, keyof ImportProductRow> = {
   referencia: "referencia",
-  descrição: "descricao",
-  descricao: "descricao",
-  "pvp inicial": "pvp_inicial",
-  "baixa %": "baixa_percent",
-  "baixa percent": "baixa_percent",
-  "pvp promo": "pvp_promo",
+  designacao: "descricao",
+  cor: "cor",
+  tam: "tam",
+  ean: "ean",
+  pvp: "pvp_inicial",
+  perc: "baixa_percent",
+  ppromo: "pvp_promo",
+  promo: "pvp_promo",
 };
 const REQUIRED_COLUMNS: (keyof ImportProductRow)[] = [
   "referencia",
   "descricao",
+  "ean",
   "pvp_inicial",
   "baixa_percent",
   "pvp_promo",
@@ -82,7 +87,8 @@ export function importCsvToBatch(batchId: number, csvContent: string): CsvImport
   Object.keys(firstRecord).forEach((header) => {
     mapHeaders.set(normalizeHeader(header), header);
   });
-  const aliasesByCanonical = REQUIRED_COLUMNS.reduce<Record<keyof ImportProductRow, string[]>>(
+  const allCanonicals = Array.from(new Set(Object.values(HEADER_ALIASES)));
+  const aliasesByCanonical = allCanonicals.reduce<Record<keyof ImportProductRow, string[]>>(
     (acc, canonical) => {
       acc[canonical] = Object.entries(HEADER_ALIASES)
         .filter(([, target]) => target === canonical)
@@ -114,11 +120,21 @@ export function importCsvToBatch(batchId: number, csvContent: string): CsvImport
 
     const referencia = getValue("referencia").trim();
     const descricao = getValue("descricao").trim();
+    const cor = getValue("cor").trim();
+    const tam = getValue("tam").trim();
+    const ean = getValue("ean").trim();
     const pvpInicial = parseDecimal(getValue("pvp_inicial"));
     const baixaPercent = parseDecimal(getValue("baixa_percent"));
     const pvpPromo = parseDecimal(getValue("pvp_promo"));
 
-    if (!referencia || !descricao || pvpInicial === null || baixaPercent === null || pvpPromo === null) {
+    if (
+      !referencia ||
+      !descricao ||
+      !ean ||
+      pvpInicial === null ||
+      baixaPercent === null ||
+      pvpPromo === null
+    ) {
       summary.skipped += 1;
       summary.errors.push({
         row: rowNumber,
@@ -130,6 +146,9 @@ export function importCsvToBatch(batchId: number, csvContent: string): CsvImport
     upsertProduct(batchId, {
       referencia,
       descricao,
+      cor,
+      tam,
+      ean,
       pvp_inicial: pvpInicial,
       baixa_percent: baixaPercent,
       pvp_promo: pvpPromo,

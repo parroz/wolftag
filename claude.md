@@ -97,23 +97,29 @@ When adding a new print mode: implement `PrintService` interface, register in `p
 
 ### CSV import
 
+The buying team exports their `.xlsx` promo file to CSV before uploading (the app parses CSV text, not Excel binaries).
+
+- Expected columns: `Referencia, Designacao, Cor, Tam, EAN, PVP, Perc, PPromo` (mapped to `referencia, descricao, cor, tam, ean, pvp_inicial, baixa_percent, pvp_promo`)
 - Delimiter auto-detected from first line (`,` or `;`)
-- Column headers normalised: diacritics stripped, lowercased — `Descrição` and `Descricao` both work
+- Column headers normalised: diacritics stripped, lowercased — `Designação` and `Designacao` both work
 - Numerics accept comma or dot decimal: `29,99` and `29.99` both parse correctly
-- Import is an **upsert** on `(batch_id, referencia)` — re-importing the same file updates prices, no duplicates
+- `cor` and `tam` are optional (default `''`); a row is skipped if `referencia`, `descricao`, `ean`, or any price is missing/invalid
+- Import is an **upsert** on `(batch_id, ean)` — re-importing the same file updates prices, no duplicates. **`referencia` is NOT unique**: one reference spans many colour/size variants, each with its own EAN.
 
 ### Search ranking
 
 `searchProducts()` returns up to 50 results ranked:
-- Rank 0: exact `referencia` match (case-insensitive)
-- Rank 1: `referencia` contains query
+- Rank 0: exact `ean` match, or exact `referencia` match (case-insensitive)
+- Rank 1: `ean` or `referencia` contains query
 - Rank 2: `descricao` contains query
 
-The first result is auto-selected in the UI, so ranking order matters for the barcode scan flow.
+Ties break by `referencia`, then `tam`. The first result is auto-selected in the UI, so an EAN barcode scan lands on exactly one variant; typing a reference lists all its variants to choose from.
 
 ### Database schema
 
-Two tables: `batches` (`id`, `name UNIQUE`, `created_at`) and `products` (`id`, `batch_id FK`, `referencia`, `descricao`, `pvp_inicial`, `baixa_percent`, `pvp_promo`, `created_at`). Unique constraint on `(batch_id, referencia)`. All queries are synchronous via `better-sqlite3` except the print path (async TCP).
+Two tables: `batches` (`id`, `name UNIQUE`, `created_at`) and `products` (`id`, `batch_id FK`, `referencia`, `descricao`, `cor`, `tam`, `ean`, `pvp_inicial`, `baixa_percent`, `pvp_promo`, `created_at`). Unique constraint on `(batch_id, ean)`. All queries are synchronous via `better-sqlite3` except the print path (async TCP).
+
+Migrations are tracked in a `_migrations` table and each `.sql` file in `migrations/` runs exactly once (in filename order). Idempotent `CREATE IF NOT EXISTS` files are safe; destructive migrations (e.g. `003_products_ean.sql`, which rebuilds `products`) rely on this run-once guarantee. Bump the numeric prefix for new migrations — never edit an applied one.
 
 ## Frontend design system
 
