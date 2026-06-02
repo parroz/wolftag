@@ -23,20 +23,6 @@ export class ResilientPrintService implements PrintService {
       };
     }
   }
-
-  async cut(): Promise<PrintResult> {
-    try {
-      return await this.primary.cut();
-    } catch (error) {
-      const fallbackResult = await this.fallback.cut();
-      return {
-        ...fallbackResult,
-        fallbackTriggered: true,
-        warning: error instanceof Error ? error.message : "Falha na impressora Brother.",
-        message: "Falha ao cortar a fita; impressora indisponível.",
-      };
-    }
-  }
 }
 
 export function createPrintService(settings: PrinterSettings): PrintService {

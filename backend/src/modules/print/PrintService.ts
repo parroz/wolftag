@@ -14,5 +14,4 @@ export interface PrintResult {
 
 export interface PrintService {
   printTag(payload: PrintTagPayload): Promise<PrintResult>;
-  cut(): Promise<PrintResult>;
 }

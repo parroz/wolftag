@@ -10,14 +10,4 @@ export class SystemDriverPrintService implements PrintService {
       warning: "Not implemented",
     };
   }
-
-  async cut(): Promise<PrintResult> {
-    return {
-      ok: false,
-      modeUsed: "system-driver",
-      fallbackTriggered: false,
-      message: "System driver cut is scaffolded only in Phase 1.",
-      warning: "Not implemented",
-    };
-  }
 }
