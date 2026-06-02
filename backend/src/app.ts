@@ -119,6 +119,13 @@ app.post("/api/print-tag", async (req, res) => {
   return res.status(result.ok ? 200 : 503).json(result);
 });
 
+app.post("/api/cut", async (_req, res) => {
+  const settings = getSettings();
+  const printService = createPrintService(settings);
+  const result = await printService.cut();
+  return res.status(result.ok ? 200 : 503).json(result);
+});
+
 // ── Settings ──────────────────────────────────────────────────────────────────
 
 const settingsSchema = z.object({

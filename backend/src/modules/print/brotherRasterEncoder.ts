@@ -96,11 +96,11 @@ export function encodeBrotherRaster(bitmap: LabelBitmap, mediaWidthMm: number): 
   chunks.push(Buffer.from([0x1b, 0x40])); // Initialize
   chunks.push(Buffer.from([0x1b, 0x69, 0x61, 0x01])); // Enter raster mode
   chunks.push(encodePrintInformation(profile, bitmap.width));
-  // Cut control: one clean cut per tag (avoids the wasteful pre-feed scrap cut).
-  chunks.push(Buffer.from([0x1b, 0x69, 0x4d, 0x40])); // Various mode: auto-cut ON, no mirror
-  chunks.push(Buffer.from([0x1b, 0x69, 0x41, 0x01])); // Cut each 1 label
-  chunks.push(Buffer.from([0x1b, 0x69, 0x4b, 0x08])); // Advanced mode: no chain printing (feed + cut this page)
-  chunks.push(Buffer.from([0x1b, 0x69, 0x64, 0x0e, 0x00])); // 14-dot margin feed (minimal leading/trailing)
+  // Chain printing: do NOT feed or cut after each tag. Tags print back-to-back
+  // with no per-tag tape waste; the operator cuts the strip on demand (encodeCut).
+  chunks.push(Buffer.from([0x1b, 0x69, 0x4d, 0x00])); // Various mode: auto-cut OFF, no mirror
+  chunks.push(Buffer.from([0x1b, 0x69, 0x4b, 0x00])); // Advanced mode: chain printing ON (no feed/cut after page)
+  chunks.push(Buffer.from([0x1b, 0x69, 0x64, 0x00, 0x00])); // 0-dot margin so consecutive tags abut
   chunks.push(Buffer.from([0x4d, 0x00])); // No compression
 
   for (let x = 0; x < bitmap.width; x += 1) {
@@ -113,6 +113,26 @@ export function encodeBrotherRaster(bitmap: LabelBitmap, mediaWidthMm: number): 
     }
   }
 
-  chunks.push(Buffer.from([0x1a])); // Print and feed
+  chunks.push(Buffer.from([0x0c])); // Print command (no feed) — keeps the chain open
+  return Buffer.concat(chunks);
+}
+
+// Feeds the chained strip out and cuts it once. The ~2.5 cm head-to-cutter
+// dead zone is paid here (once per strip) instead of on every tag.
+export function encodeCut(mediaWidthMm: number): Buffer {
+  const profile = getTapeProfile(mediaWidthMm);
+  const chunks: Buffer[] = [];
+
+  chunks.push(Buffer.alloc(200, 0x00)); // Invalidate preamble
+  chunks.push(Buffer.from([0x1b, 0x40])); // Initialize
+  chunks.push(Buffer.from([0x1b, 0x69, 0x61, 0x01])); // Enter raster mode
+  chunks.push(encodePrintInformation(profile, 1)); // single (blank) raster line
+  chunks.push(Buffer.from([0x1b, 0x69, 0x4d, 0x40])); // Various mode: auto-cut ON
+  chunks.push(Buffer.from([0x1b, 0x69, 0x4b, 0x08])); // Advanced mode: no chain printing (feed + cut)
+  chunks.push(Buffer.from([0x1b, 0x69, 0x64, 0x00, 0x00])); // 0-dot margin
+  chunks.push(Buffer.from([0x4d, 0x00])); // No compression
+  chunks.push(Buffer.from([0x5a])); // one zero raster line
+  chunks.push(Buffer.from([0x1a])); // Print and feed -> ejects strip and cuts
+
   return Buffer.concat(chunks);
 }
