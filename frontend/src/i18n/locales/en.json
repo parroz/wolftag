@@ -38,8 +38,6 @@
     "inputPlaceholder": "Scan barcode (EAN) or type reference…",
     "printButton": "Print Tag",
     "printingButton": "Printing…",
-    "cutButton": "Cut tape",
-    "cutFailed": "Failed to cut tape.",
     "selectBatchFirst": "Please select a batch first.",
     "notFound": "Product not found in selected batch",
     "searchFailed": "Search failed.",

@@ -83,9 +83,6 @@ describe("print fallback", () => {
       async printTag() {
         throw new Error("connection timeout");
       },
-      async cut() {
-        throw new Error("connection timeout");
-      },
     };
     const service = new ResilientPrintService(failingPrimary, new MockPrintService());
     const result = await service.printTag({
@@ -119,14 +116,6 @@ describe("print fallback", () => {
           message: "printed",
         } satisfies PrintResult;
       },
-      async cut() {
-        return {
-          ok: true,
-          modeUsed: "brother-raster",
-          fallbackTriggered: false,
-          message: "cut",
-        } satisfies PrintResult;
-      },
     };
     const service = new ResilientPrintService(primary, new MockPrintService());
     const result = await service.printTag({
@@ -147,22 +136,5 @@ describe("print fallback", () => {
 
     expect(result.modeUsed).toBe("brother-raster");
     expect(result.fallbackTriggered).toBe(false);
-  });
-
-  it("falls back to mock when cut fails on the primary", async () => {
-    const failingPrimary: PrintService = {
-      async printTag() {
-        throw new Error("should not be called");
-      },
-      async cut() {
-        throw new Error("cutter offline");
-      },
-    };
-    const service = new ResilientPrintService(failingPrimary, new MockPrintService());
-    const result = await service.cut();
-
-    expect(result.modeUsed).toBe("mock");
-    expect(result.fallbackTriggered).toBe(true);
-    expect(result.warning).toContain("cutter offline");
   });
 });

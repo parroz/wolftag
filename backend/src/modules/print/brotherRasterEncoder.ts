@@ -118,24 +118,3 @@ export function encodeBrotherRaster(bitmap: LabelBitmap, mediaWidthMm: number): 
   chunks.push(Buffer.from([0x1a])); // Print with feeding (last page); chain-on suppresses the cut
   return Buffer.concat(chunks);
 }
-
-// Feeds the chained strip out and cuts it once. Sends a minimal (one blank
-// raster line) page with auto-cut ON + no chain printing + 1A, so the printer
-// advances the already-printed tags to the cutter and cuts.
-export function encodeCut(mediaWidthMm: number): Buffer {
-  const profile = getTapeProfile(mediaWidthMm);
-  const chunks: Buffer[] = [];
-
-  chunks.push(Buffer.alloc(200, 0x00)); // Invalidate preamble
-  chunks.push(Buffer.from([0x1b, 0x40])); // Initialize
-  chunks.push(Buffer.from([0x1b, 0x69, 0x61, 0x01])); // Enter raster mode
-  chunks.push(encodePrintInformation(profile, 1)); // single (blank) raster line
-  chunks.push(Buffer.from([0x1b, 0x69, 0x4d, 0x40])); // Various mode: auto-cut ON
-  chunks.push(Buffer.from([0x1b, 0x69, 0x4b, 0x08])); // Advanced mode: no chain printing (feed + cut)
-  chunks.push(Buffer.from([0x1b, 0x69, 0x64, 0x00, 0x00])); // 0-dot margin
-  chunks.push(Buffer.from([0x4d, 0x00])); // No compression
-  chunks.push(Buffer.from([0x5a])); // one zero raster line
-  chunks.push(Buffer.from([0x1a])); // Print with feeding -> ejects strip and cuts
-
-  return Buffer.concat(chunks);
-}

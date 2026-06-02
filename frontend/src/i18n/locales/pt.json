@@ -38,8 +38,6 @@
     "inputPlaceholder": "Ler código de barras (EAN) ou escrever referência…",
     "printButton": "Imprimir Etiqueta",
     "printingButton": "A imprimir…",
-    "cutButton": "Cortar fita",
-    "cutFailed": "Erro ao cortar a fita.",
     "selectBatchFirst": "Selecione um lote primeiro.",
     "notFound": "Produto não encontrado no lote selecionado",
     "searchFailed": "Erro na pesquisa.",

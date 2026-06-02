@@ -9,13 +9,4 @@ export class MockPrintService implements PrintService {
       message: `Impressão simulada para produto ${payload.product.referencia}.`,
     };
   }
-
-  async cut(): Promise<PrintResult> {
-    return {
-      ok: true,
-      modeUsed: "mock",
-      fallbackTriggered: false,
-      message: "Corte de fita simulado.",
-    };
-  }
 }
