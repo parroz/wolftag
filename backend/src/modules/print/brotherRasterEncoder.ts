@@ -96,11 +96,13 @@ export function encodeBrotherRaster(bitmap: LabelBitmap, mediaWidthMm: number): 
   chunks.push(Buffer.from([0x1b, 0x40])); // Initialize
   chunks.push(Buffer.from([0x1b, 0x69, 0x61, 0x01])); // Enter raster mode
   chunks.push(encodePrintInformation(profile, bitmap.width));
-  // Cut control: one clean cut per tag (avoids the wasteful pre-feed scrap cut).
-  chunks.push(Buffer.from([0x1b, 0x69, 0x4d, 0x40])); // Various mode: auto-cut ON, no mirror
-  chunks.push(Buffer.from([0x1b, 0x69, 0x41, 0x01])); // Cut each 1 label
-  chunks.push(Buffer.from([0x1b, 0x69, 0x4b, 0x08])); // Advanced mode: no chain printing (feed + cut this page)
-  chunks.push(Buffer.from([0x1b, 0x69, 0x64, 0x0e, 0x00])); // 14-dot margin feed (minimal leading/trailing)
+  // Mirror the P-touch driver's "Chain Printing on, Auto Cut off": tags print
+  // with no cut and minimal feed, stay chained, and the operator cuts with the
+  // printer's physical button. Terminate with 1A (last-page print+feed) — NOT
+  // 0C: 0C signals "more pages", which makes the printer feed continuously.
+  chunks.push(Buffer.from([0x1b, 0x69, 0x4d, 0x00])); // Various mode: auto-cut OFF, no mirror
+  chunks.push(Buffer.from([0x1b, 0x69, 0x4b, 0x00])); // Advanced mode: chain printing ON, no half cut
+  chunks.push(Buffer.from([0x1b, 0x69, 0x64, 0x0e, 0x00])); // 14-dot margin between chained tags
   chunks.push(Buffer.from([0x4d, 0x00])); // No compression
 
   for (let x = 0; x < bitmap.width; x += 1) {
@@ -113,6 +115,6 @@ export function encodeBrotherRaster(bitmap: LabelBitmap, mediaWidthMm: number): 
     }
   }
 
-  chunks.push(Buffer.from([0x1a])); // Print and feed
+  chunks.push(Buffer.from([0x1a])); // Print with feeding (last page); chain-on suppresses the cut
   return Buffer.concat(chunks);
 }
