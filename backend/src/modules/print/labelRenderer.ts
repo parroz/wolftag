@@ -62,24 +62,26 @@ export async function renderLabelBitmap(product: Product, labelWidthMm: number):
   const priceNumberWidth = measureText(font, priceNumber);
   const priceWidth = priceNumberWidth + euroGap + euroWidth;
 
-  const padding = 16;
-  const gap = 30; // space between the discount and the price
+  const padding = 14;
+  const rowGap = 32; // vertical distance between the two rows' print origins
   const height = labelWidthMm === 12 ? 70 : 128;
-  const width = padding + discountWidth + gap + priceWidth + padding;
+  const width = padding + Math.max(discountWidth, priceWidth) + padding;
 
   const image = new Jimp({ width, height, color: 0xffffffff });
 
-  // Vertically centre using the digit glyph metrics.
+  // Two rows, left-aligned, vertically centred as a block. Use the digit glyph
+  // metrics so the block sits evenly between the top and bottom tape margins.
   const digit = font.chars["5"];
-  const y = Math.round((height - digit.height) / 2) - digit.yoffset;
+  const blockHeight = rowGap + digit.height;
+  const row1Y = Math.round((height - blockHeight) / 2) - digit.yoffset;
+  const row2Y = row1Y + rowGap;
 
-  // Discount on the left.
-  image.print({ font, x: padding, y, text: discountText });
+  // Row 1: discount.
+  image.print({ font, x: padding, y: row1Y, text: discountText });
 
-  // Price (number + drawn euro) right-aligned.
-  const priceX = width - padding - priceWidth;
-  image.print({ font, x: priceX, y, text: priceNumber });
-  drawEuro(image, font, priceX + priceNumberWidth + euroGap, y);
+  // Row 2: price (number + drawn euro).
+  image.print({ font, x: padding, y: row2Y, text: priceNumber });
+  drawEuro(image, font, padding + priceNumberWidth + euroGap, row2Y);
 
   return { width, height, rgba: Buffer.from(image.bitmap.data) };
 }
