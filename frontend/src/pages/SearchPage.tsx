@@ -183,7 +183,9 @@ export function SearchPage(props: SearchPageProps) {
               {variantLabel(selectedProduct, t("common.cor"), t("common.tam"))}
             </p>
           )}
-          <p className="ean-line">{t("common.ean")}: {selectedProduct.ean}</p>
+          {selectedProduct.ean !== selectedProduct.referencia && (
+            <p className="ean-line">{t("common.ean")}: {selectedProduct.ean}</p>
+          )}
           <div className="print-row">
             <label className="qty-field">
               {t("search.quantity")}

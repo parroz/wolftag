@@ -14,10 +14,11 @@ const HEADER_ALIASES: Record<string, keyof ImportProductRow> = {
   ppromo: "pvp_promo",
   promo: "pvp_promo",
 };
+// EAN is intentionally NOT required: files without barcodes (e.g. kids items)
+// fall back to using `referencia` as the row key — see the import loop below.
 const REQUIRED_COLUMNS: (keyof ImportProductRow)[] = [
   "referencia",
   "descricao",
-  "ean",
   "pvp_inicial",
   "baixa_percent",
   "pvp_promo",
@@ -122,7 +123,8 @@ export function importCsvToBatch(batchId: number, csvContent: string): CsvImport
     const descricao = getValue("descricao").trim();
     const cor = getValue("cor").trim();
     const tam = getValue("tam").trim();
-    const ean = getValue("ean").trim();
+    // No EAN (no barcode) → key the row by its referencia instead.
+    const ean = getValue("ean").trim() || referencia;
     const pvpInicial = parseDecimal(getValue("pvp_inicial"));
     const baixaPercent = parseDecimal(getValue("baixa_percent"));
     const pvpPromo = parseDecimal(getValue("pvp_promo"));
@@ -130,7 +132,6 @@ export function importCsvToBatch(batchId: number, csvContent: string): CsvImport
     if (
       !referencia ||
       !descricao ||
-      !ean ||
       pvpInicial === null ||
       baixaPercent === null ||
       pvpPromo === null

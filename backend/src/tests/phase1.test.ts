@@ -15,19 +15,36 @@ beforeEach(() => {
 });
 
 describe("csv import", () => {
-  it("imports decimal values and reports skipped rows", () => {
+  it("imports decimal values and skips rows missing required fields", () => {
     const batch = createBatchIfMissing("TEST-A");
     const csv = [
       "referencia;Designacao;Cor;Tam;EAN;PVP;Perc;PPromo",
       "ABC123;Produto A;1;M;1000007538963;29,99;40;19,99",
       "   ABC123   ; Produto A ;1; L ;1000007538970;59.90;10,5;53,91",
-      "BAD;Missing EAN;1;M;;19.99;5;18.99",
+      "BAD;Sem preço;1;M;1000007538999;;;",
     ].join("\n");
 
     const summary = importCsvToBatch(batch.id, csv);
     expect(summary.imported).toBe(2);
     expect(summary.skipped).toBe(1);
     expect(summary.errors.length).toBe(1);
+  });
+
+  it("imports rows without an EAN, keyed by referencia", () => {
+    const batch = createBatchIfMissing("TEST-NO-EAN");
+    const csv = [
+      "referencia;Designacao;Cor;Tam;EAN;PVP;Perc;PPromo",
+      "501202;VESTIDO SIMBA;;;;49,90;30;34,93",
+      "504209;BLUSA ZURBARAN;;;;39,90;30;27,93",
+    ].join("\n");
+
+    const summary = importCsvToBatch(batch.id, csv);
+    expect(summary.imported).toBe(2);
+    expect(summary.skipped).toBe(0);
+
+    const results = searchProducts(batch.id, "501202");
+    expect(results.length).toBe(1);
+    expect(results[0]?.ean).toBe("501202"); // referencia stands in as the key
   });
 
   it("keeps each EAN variant of a shared reference as a distinct row", () => {
