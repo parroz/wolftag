@@ -1,6 +1,13 @@
 {
   "app": {
-    "loadError": "Could not load batches."
+    "loadError": "Could not load batches.",
+    "logout": "Log out"
+  },
+  "login": {
+    "passwordLabel": "Password",
+    "submit": "Log in",
+    "submitting": "Logging in…",
+    "failed": "Authentication failed."
   },
   "nav": {
     "import": "Batch Import",

@@ -16,6 +16,9 @@ const envSchema = z.object({
   PRINT_MODE: z
     .enum(["mock", "brother-raster", "system-driver"])
     .default("mock"),
+  // Single shared login password. When empty, auth is disabled (local dev).
+  // Set this in production — the app is exposed to the internet.
+  APP_PASSWORD: z.string().default(""),
 });
 
 export const env = envSchema.parse(process.env);

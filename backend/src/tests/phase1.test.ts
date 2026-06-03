@@ -7,6 +7,7 @@ import { type PrintResult, type PrintService } from "../modules/print/PrintServi
 import { MockPrintService } from "../modules/print/MockPrintService.js";
 import { ResilientPrintService } from "../modules/print/printServiceFactory.js";
 import { searchProducts } from "../modules/products/productRepository.js";
+import { createToken, verifyToken } from "../modules/auth/auth.js";
 
 beforeEach(() => {
   db.exec("DELETE FROM products");
@@ -136,5 +137,23 @@ describe("print fallback", () => {
 
     expect(result.modeUsed).toBe("brother-raster");
     expect(result.fallbackTriggered).toBe(false);
+  });
+});
+
+describe("auth tokens", () => {
+  it("accepts a freshly issued token", () => {
+    expect(verifyToken(createToken())).toBe(true);
+  });
+
+  it("rejects a tampered token", () => {
+    const token = createToken();
+    const tampered = `${token.slice(0, -1)}${token.slice(-1) === "a" ? "b" : "a"}`;
+    expect(verifyToken(tampered)).toBe(false);
+  });
+
+  it("rejects garbage and empty tokens", () => {
+    expect(verifyToken("")).toBe(false);
+    expect(verifyToken("not.a.token")).toBe(false);
+    expect(verifyToken("abc")).toBe(false);
   });
 });

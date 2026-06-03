@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { NavLink, Navigate, Route, Routes } from "react-router-dom";
-import { fetchBatches } from "./api";
+import { clearToken, fetchAuthRequired, fetchBatches, getToken } from "./api";
 import "./App.css";
 import { SettingsModal } from "./components/SettingsModal";
 import { ImportPage } from "./pages/ImportPage";
+import { LoginPage } from "./pages/LoginPage";
 import { SearchPage } from "./pages/SearchPage";
 import type { Batch } from "./types";
 
@@ -23,6 +24,9 @@ function App() {
   const [selectedBatchId, setSelectedBatchId] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [authReady, setAuthReady] = useState(false);
+  const [authRequired, setAuthRequired] = useState(false);
+  const [authed, setAuthed] = useState(false);
 
   const reloadBatches = async () => {
     try {
@@ -40,8 +44,37 @@ function App() {
   };
 
   useEffect(() => {
-    void reloadBatches();
+    void (async () => {
+      try {
+        const required = await fetchAuthRequired();
+        setAuthRequired(required);
+        setAuthed(!required || Boolean(getToken()));
+      } catch {
+        setAuthed(Boolean(getToken()));
+      } finally {
+        setAuthReady(true);
+      }
+    })();
   }, []);
+
+  useEffect(() => {
+    if (authed) {
+      void reloadBatches();
+    }
+  }, [authed]);
+
+  function handleLogout() {
+    clearToken();
+    setAuthed(false);
+  }
+
+  if (!authReady) {
+    return null;
+  }
+
+  if (!authed) {
+    return <LoginPage onAuthenticated={() => setAuthed(true)} />;
+  }
 
   return (
     <div className="app-shell">
@@ -63,6 +96,11 @@ function App() {
             <NavLink to="/import">{t("nav.import")}</NavLink>
             <NavLink to="/search">{t("nav.search")}</NavLink>
           </nav>
+          {authRequired && (
+            <button className="logout-btn" type="button" onClick={handleLogout}>
+              {t("app.logout")}
+            </button>
+          )}
         </div>
       </header>
 

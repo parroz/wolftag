@@ -1,6 +1,13 @@
 {
   "app": {
-    "loadError": "Não foi possível carregar os lotes."
+    "loadError": "Não foi possível carregar os lotes.",
+    "logout": "Sair"
+  },
+  "login": {
+    "passwordLabel": "Senha",
+    "submit": "Entrar",
+    "submitting": "A entrar…",
+    "failed": "Falha na autenticação."
   },
   "nav": {
     "import": "Importar Lote",

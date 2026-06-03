@@ -7,16 +7,50 @@ import { importCsvToBatch } from "./modules/import/csvImportService.js";
 import { getProductById, searchProducts } from "./modules/products/productRepository.js";
 import { getSettings, updateSettings } from "./modules/settings/settingsRepository.js";
 import { createPrintService } from "./modules/print/printServiceFactory.js";
+import {
+  authEnabled,
+  checkPassword,
+  clearLoginFailures,
+  createToken,
+  loginThrottled,
+  recordLoginFailure,
+  requireAuth,
+} from "./modules/auth/auth.js";
 
 const upload = multer({ storage: multer.memoryStorage() });
 
 export const app = express();
+app.set("trust proxy", true); // behind nginx — use X-Forwarded-For for client IP
 app.use(cors());
 app.use(express.json());
+
+// ── Public routes (no auth) ────────────────────────────────────────────────────
 
 app.get("/api/health", (_req, res) => {
   res.json({ ok: true });
 });
+
+app.get("/api/auth/status", (_req, res) => {
+  return res.json({ authRequired: authEnabled() });
+});
+
+app.post("/api/login", (req, res) => {
+  const ip = req.ip ?? "unknown";
+  if (loginThrottled(ip)) {
+    return res.status(429).json({ error: "Demasiadas tentativas. Tente novamente mais tarde." });
+  }
+  const parsed = z.object({ password: z.string() }).safeParse(req.body);
+  if (!parsed.success || !checkPassword(parsed.data.password)) {
+    recordLoginFailure(ip);
+    return res.status(401).json({ error: "Senha incorreta." });
+  }
+  clearLoginFailures(ip);
+  return res.json({ token: createToken() });
+});
+
+// ── Everything below requires authentication ────────────────────────────────────
+
+app.use(requireAuth);
 
 // ── Batches ──────────────────────────────────────────────────────────────────
 

@@ -8,6 +8,8 @@ services:
       - "127.0.0.1:${BACKEND_PORT:-3000}:3000"
     environment:
       DB_PATH: /data/app.db
+      # Single shared login password — set this in .env when exposed publicly
+      APP_PASSWORD:   ${APP_PASSWORD:-}
       # These seed the initial defaults — change them via the Settings UI after first run
       PRINT_MODE:     ${PRINT_MODE:-mock}
       PRINTER_IP:     ${PRINTER_IP:-192.168.1.122}
